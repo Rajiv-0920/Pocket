@@ -1,15 +1,35 @@
 import { ExternalLink, Globe, Trash2 } from 'lucide-react';
 import TagPill from './TagPill';
+import {
+  CategoryBadge,
+  DomainBadge,
+  MediaTypeBadge,
+  StatusBadge,
+} from './CategoryBadge';
 import { useState } from 'react';
 import { getDomain, timeAgo } from '../library/utils';
 import { useDispatch } from 'react-redux';
 import { visitBookmark } from '../features/bookmark/bookmarkSlice';
 
 const LargeCard = ({ bookmark, onDelete }) => {
-  const { id, url, name, description, image, tags, createdAt } = bookmark;
+  const {
+    id,
+    url,
+    name,
+    description,
+    image,
+    tags,
+    createdAt,
+    category,
+    subType,
+    domain,
+    mediaType,
+    status,
+  } = bookmark;
   const dispatch = useDispatch();
   const [imgFailed, setImgFailed] = useState(false);
-  const domain = getDomain(url);
+  const siteDomain = getDomain(url);
+  const hasMeta = category || domain || mediaType || status;
 
   return (
     <article className="group flex flex-col rounded-2xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-900 shadow-sm hover:shadow-xl dark:hover:shadow-zinc-950/60 hover:-translate-y-1 transition-all duration-300 overflow-hidden">
@@ -25,7 +45,7 @@ const LargeCard = ({ bookmark, onDelete }) => {
           <div className="flex h-full w-full flex-col items-center justify-center gap-2">
             <Globe className="h-9 w-9 text-zinc-300 dark:text-zinc-600" />
             <span className="text-xs text-zinc-400 dark:text-zinc-500 font-medium">
-              {domain}
+              {siteDomain}
             </span>
           </div>
         )}
@@ -41,7 +61,7 @@ const LargeCard = ({ bookmark, onDelete }) => {
       <div className="flex flex-1 flex-col gap-2.5 p-4">
         <div className="flex items-center gap-2">
           <img
-            src={`https://www.google.com/s2/favicons?sz=32&domain=${domain}`}
+            src={`https://www.google.com/s2/favicons?sz=32&domain=${siteDomain}`}
             alt=""
             className="h-4 w-4 rounded shrink-0"
             onError={(e) => {
@@ -49,7 +69,7 @@ const LargeCard = ({ bookmark, onDelete }) => {
             }}
           />
           <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 truncate flex-1">
-            {domain}
+            {siteDomain}
           </span>
           <span className="text-[10px] text-zinc-300 dark:text-zinc-600 shrink-0">
             {timeAgo(createdAt)}
@@ -63,6 +83,17 @@ const LargeCard = ({ bookmark, onDelete }) => {
             {description}
           </p>
         )}
+
+        {/* Category / domain / media type / status */}
+        {hasMeta && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <CategoryBadge category={category} subType={subType} />
+            <DomainBadge domain={domain} />
+            <MediaTypeBadge mediaType={mediaType} />
+            <StatusBadge status={status} />
+          </div>
+        )}
+
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-auto pt-0.5">
             {tags.map((t) => (
@@ -84,5 +115,4 @@ const LargeCard = ({ bookmark, onDelete }) => {
     </article>
   );
 };
-
 export default LargeCard;

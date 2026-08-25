@@ -13,7 +13,15 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { createBookmark } from '../features/bookmark/bookmarkSlice';
 import TagPill from './TagPill';
-import { SUGGESTED_TAGS } from '../library/constants';
+import {
+  SUGGESTED_TAGS,
+  CATEGORIES,
+  TOOL_DOMAINS,
+  TOOL_MEDIA_TYPES,
+  OTHER_SUBTYPES,
+  LEARNING_STATUS,
+  ARTICLE_STATUS,
+} from '../library/constants';
 
 const EMPTY_FORM = {
   url: '',
@@ -21,8 +29,19 @@ const EMPTY_FORM = {
   description: '',
   tags: [],
   tagInput: '',
+  category: '',
+  subType: '', // 'Other' category only
+  domain: '', // 'Tool' category only
+  mediaType: '', // 'Tool' category only, independent of domain
+  status: '',
   _image: null,
 };
+
+function getStatusOptions(category, subType) {
+  if (category === 'Learning') return LEARNING_STATUS;
+  if (category === 'Other' && subType === 'Article') return ARTICLE_STATUS;
+  return [];
+}
 
 const AddModal = ({ onClose }) => {
   const [form, setForm] = useState(EMPTY_FORM);
@@ -108,6 +127,37 @@ const AddModal = ({ onClose }) => {
     }
   }
 
+  function selectCategory(cat) {
+    setForm((f) => ({
+      ...f,
+      category: f.category === cat ? '' : cat,
+      subType: '',
+      domain: '',
+      mediaType: '',
+      status: '',
+    }));
+  }
+
+  function selectSubType(sub) {
+    setForm((f) => ({
+      ...f,
+      subType: f.subType === sub ? '' : sub,
+      status: '',
+    }));
+  }
+
+  function selectDomain(d) {
+    setForm((f) => ({ ...f, domain: f.domain === d ? '' : d }));
+  }
+
+  function selectMediaType(m) {
+    setForm((f) => ({ ...f, mediaType: f.mediaType === m ? '' : m }));
+  }
+
+  function selectStatus(st) {
+    setForm((f) => ({ ...f, status: f.status === st ? '' : st }));
+  }
+
   const handleSave = () => {
     if (!form.url.trim()) return setFormError('URL is required.');
     if (!form.name.trim()) return setFormError('Name is required.');
@@ -119,6 +169,11 @@ const AddModal = ({ onClose }) => {
       description: form.description.trim(),
       image: form._image,
       tags: form.tags,
+      category: form.category || null,
+      subType: form.subType || null,
+      domain: form.domain || null,
+      mediaType: form.mediaType || null,
+      status: form.status || null,
     };
     setForm(EMPTY_FORM);
     dispatch(createBookmark(bookmark));
@@ -130,6 +185,14 @@ const AddModal = ({ onClose }) => {
     'w-full rounded-xl border py-2.5 text-sm outline-none transition focus:ring-2';
   const inputColors =
     'bg-zinc-50 dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:bg-white dark:focus:bg-zinc-800 focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-zinc-900/10 dark:focus:ring-zinc-400/10';
+
+  // Shared pill button classes
+  const pillBase =
+    'rounded-full border px-3 py-1.5 text-[11px] font-semibold transition';
+  const pillInactive =
+    'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-500';
+
+  const statusOptions = getStatusOptions(form.category, form.subType);
 
   return (
     <div
@@ -295,6 +358,132 @@ const AddModal = ({ onClose }) => {
               </div>
             </div>
           </div>
+
+          {/* Category */}
+          <div>
+            <label className="block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 uppercase tracking-widest">
+              Category
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => selectCategory(cat)}
+                  className={`${pillBase} ${
+                    form.category === cat
+                      ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+                      : pillInactive
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tool: Domain (primary axis) */}
+          {form.category === 'Tool' && (
+            <div>
+              <label className="block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 uppercase tracking-widest">
+                Domain
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {TOOL_DOMAINS.map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => selectDomain(d)}
+                    className={`${pillBase} ${
+                      form.domain === d
+                        ? 'border-teal-500 bg-teal-500 text-white'
+                        : pillInactive
+                    }`}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tool: Media Type (secondary, independent axis) */}
+          {form.category === 'Tool' && (
+            <div>
+              <label className="block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 uppercase tracking-widest">
+                Media Type{' '}
+                <span className="normal-case font-normal text-zinc-400 dark:text-zinc-500">
+                  (optional)
+                </span>
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {TOOL_MEDIA_TYPES.map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => selectMediaType(m)}
+                    className={`${pillBase} ${
+                      form.mediaType === m
+                        ? 'border-cyan-500 bg-cyan-500 text-white'
+                        : pillInactive
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Other: Sub-type (single axis, unchanged) */}
+          {form.category === 'Other' && (
+            <div>
+              <label className="block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 uppercase tracking-widest">
+                Type of Item
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {OTHER_SUBTYPES.map((sub) => (
+                  <button
+                    key={sub}
+                    type="button"
+                    onClick={() => selectSubType(sub)}
+                    className={`${pillBase} ${
+                      form.subType === sub
+                        ? 'border-teal-500 bg-teal-500 text-white'
+                        : pillInactive
+                    }`}
+                  >
+                    {sub}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Status — only shown when relevant (Learning, or Other > Article) */}
+          {statusOptions.length > 0 && (
+            <div>
+              <label className="block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 uppercase tracking-widest">
+                Status
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {statusOptions.map((st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => selectStatus(st)}
+                    className={`${pillBase} ${
+                      form.status === st
+                        ? 'border-indigo-500 bg-indigo-500 text-white'
+                        : pillInactive
+                    }`}
+                  >
+                    {st}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {formError && (
             <p className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/40 px-4 py-3 text-xs font-medium text-red-600 dark:text-red-400">

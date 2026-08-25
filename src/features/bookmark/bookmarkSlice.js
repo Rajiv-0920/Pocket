@@ -16,13 +16,17 @@ const bookmarkSlice = createSlice({
         id: nanoid(),
         createdAt: Date.now(),
         lastVisited: null,
-        count: 0,
+        visitCount: 0,
+        category: null, // 'Learning' | 'Tool' | 'Other'
+        subType: null, // used by 'Other' category, e.g. 'Article'
+        domain: null, // used by 'Tool' category, e.g. 'OSINT', 'Web Development'
+        mediaType: null, // used by 'Tool' category, e.g. 'Video', 'Code' (optional, independent of domain)
+        status: null, // e.g. 'Not Started', 'Unread'
         ...action.payload,
       };
       state.bookmarks.push(bookmark);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state.bookmarks));
     },
-
     visitBookmark: (state, action) => {
       const id = action.payload;
       const bookmark = state.bookmarks.find((b) => b.id === id);
@@ -32,16 +36,21 @@ const bookmarkSlice = createSlice({
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state.bookmarks));
     },
-
     deleteBookmark: (state, action) => {
       const { id } = action.payload;
       state.bookmarks = state.bookmarks.filter((b) => b.id !== id);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state.bookmarks));
     },
+    updateStatus: (state, action) => {
+      const { id, status } = action.payload;
+      const bookmark = state.bookmarks.find((b) => b.id === id);
+      if (bookmark) bookmark.status = status;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.bookmarks));
+    },
   },
 });
 
-export const { createBookmark, visitBookmark, deleteBookmark } =
+export const { createBookmark, visitBookmark, deleteBookmark, updateStatus } =
   bookmarkSlice.actions;
 export default bookmarkSlice.reducer;
 

@@ -102,7 +102,7 @@ const Header = ({
         </div>
 
         {/* Tag filter row */}
-        <div className="flex items-center gap-2 pb-3 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-2 pb-3 overflow-x-auto scrollbar-none [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Filter className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500 shrink-0" />
           {allTags.map((tag) => (
             <button
